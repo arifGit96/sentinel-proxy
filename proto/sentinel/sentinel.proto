@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package sentinel;
+
+option go_package = "github.com/sentinel-proxy/sentinel-proxy/proto/sentinel";
+
+// from backend to proxy
+service DataService {
+  // normal, attack simulation, and export modes.
+  rpc GetData(DataRequest) returns (stream DataChunk);
+}
+
+// DataRequest describes what data the client is requesting.
+message DataRequest {
+  string user_id = 1;
+
+  // original export path 
+  string endpoint = 2;
+
+  DataMode mode = 3;
+
+  map<string, string> params = 4;
+}
+
+// DataMode enumerates the backend behavior modes.
+enum DataMode {
+  DATA_MODE_UNSPECIFIED = 0;
+  DATA_MODE_NORMAL = 1;
+  DATA_MODE_ATTACK = 2;
+  DATA_MODE_EXPORT = 3;
+}
+
+// DataChunk is a single chunk of streamed response data.
+message DataChunk {
+  // payload is the raw bytes of this chunk
+  bytes payload = 1;
+
+  // chunk_index is the 0-based sequence number.
+  int64 chunk_index = 2;
+
+  // total_bytes is the cumulative bytes sent so far (server-side count).
+  int64 total_bytes = 3;
+
+  // is_last indicates this is the final chunk.
+  bool is_last = 4;
+
+  map<string, string> metadata = 5;
+}
